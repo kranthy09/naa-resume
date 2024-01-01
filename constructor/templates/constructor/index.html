@@ -1,0 +1,52 @@
+<!-- constructor/templates/constructor/room.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+    <div>
+        <input id="skill-input" type="text" size="10"><br>
+        <input id="experience-input" type="text" size="10"><br>
+    </div>
+    <div>
+        <textarea id="chat-log" cols="50" rows="10"></textarea><br>
+        <input id="chat-message-submit" type="button" value="Send">
+    </div>
+    <script>
+        const chatSocket = new WebSocket(
+            'ws://'
+            + window.location.host
+            + '/ws/rcs/'
+        );
+
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            document.querySelector('#chat-log').value += (data.message + '\n');
+        };
+
+        chatSocket.onclose = function(e) {
+            console.error('Chat socket closed unexpectedly');
+        };
+
+        document.querySelector('#skill-input').focus();
+        document.querySelector('#skill-input').onkeyup = function(e) {
+            if (e.key === 'Enter') {  // enter, return
+                document.querySelector('#chat-message-submit').click();
+            }
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) {
+            const messageInputDom = document.querySelector('#skill-input');
+            const message = messageInputDom.value;
+            chatSocket.send(JSON.stringify({
+                'message': message,
+                'rcs_type': 'skill'
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>
